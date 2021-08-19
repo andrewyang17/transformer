@@ -7,7 +7,7 @@ import (
 	"github.com/sugarme/gotch/nn"
 	ts "github.com/sugarme/gotch/tensor"
 
-	"github.com/sugarme/transformer/util"
+	"github.com/andrewyang17/transformer/util"
 )
 
 // BertEmbedding defines interface for BertModel or RoBertaModel.

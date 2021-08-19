@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/sugarme/transformer/pretrained"
-	"github.com/sugarme/transformer/util"
+	"github.com/andrewyang17/transformer/pretrained"
+	"github.com/andrewyang17/transformer/util"
 )
 
 // BertConfig defines the BERT model architecture (i.e., number of layers,

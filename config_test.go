@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sugarme/transformer"
-	"github.com/sugarme/transformer/bert"
+	"github.com/andrewyang17/transformer"
+	"github.com/andrewyang17/transformer/bert"
 )
 
 // With model name

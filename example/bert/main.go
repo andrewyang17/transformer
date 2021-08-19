@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/andrewyang17/transformer/bert"
 	"github.com/sugarme/gotch"
 	"github.com/sugarme/gotch/nn"
 	ts "github.com/sugarme/gotch/tensor"
@@ -12,7 +13,6 @@ import (
 	"github.com/sugarme/tokenizer/normalizer"
 	"github.com/sugarme/tokenizer/pretokenizer"
 	"github.com/sugarme/tokenizer/processor"
-	"github.com/sugarme/transformer/bert"
 )
 
 func main() {
@@ -66,11 +66,14 @@ func bertForMaskedLM() {
 	device := gotch.CPU
 	vs := nn.NewVarStore(device)
 
-	config := bert.ConfigFromFile("../../data/bert/config.json")
+	config, err := bert.ConfigFromFile("../../data/bert/config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 	// fmt.Printf("Bert Configuration:\n%+v\n", config)
 
 	model := bert.NewBertForMaskedLM(vs.Root(), config)
-	err := vs.Load("../../data/bert/model.ot")
+	err = vs.Load("../../data/bert/model.ot")
 	if err != nil {
 		log.Fatalf("Load model weight error: \n%v", err)
 	}
@@ -139,7 +142,10 @@ func bertForSequenceClassification() {
 	device := gotch.CPU
 	vs := nn.NewVarStore(device)
 
-	config := bert.ConfigFromFile("../../data/bert/config.json")
+	config, err := bert.ConfigFromFile("../../data/bert/config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var dummyLabelMap map[int64]string = make(map[int64]string)
 	dummyLabelMap[0] = "positive"

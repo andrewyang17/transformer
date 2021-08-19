@@ -8,9 +8,9 @@ import (
 	"github.com/sugarme/gotch/nn"
 	ts "github.com/sugarme/gotch/tensor"
 
-	"github.com/sugarme/transformer/bert"
-	"github.com/sugarme/transformer/pretrained"
-	"github.com/sugarme/transformer/util"
+	"github.com/andrewyang17/transformer/bert"
+	"github.com/andrewyang17/transformer/pretrained"
+	"github.com/andrewyang17/transformer/util"
 )
 
 // RobertaLMHead holds data of Roberta LM head.

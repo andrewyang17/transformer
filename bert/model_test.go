@@ -15,7 +15,7 @@ import (
 	"github.com/sugarme/tokenizer/pretokenizer"
 	"github.com/sugarme/tokenizer/processor"
 
-	"github.com/sugarme/transformer/bert"
+	"github.com/andrewyang17/transformer/bert"
 )
 
 func getBertTokenizer() (retVal *tokenizer.Tokenizer) {

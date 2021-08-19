@@ -33,19 +33,19 @@ func NewNERModel(config TokenClassificationModel) *NERModel {
 }
 
 // Predict extracts entities from input text and returns slice of entities with score
-func (nm *NERModel) Predict(input []string) []Entity {
-	tokens := nm.tokenClassificationModel.Predict(input, true, false)
-
-	var entities []Entity
-	for _, tok := range tokens {
-		if tok.Label != "0" {
-			entities = append(entities, Entity{
-				Word:  tok.Text,
-				Score: tok.Score,
-				Label: tok.Label,
-			})
-		}
-	}
-
-	return entities
-}
+//func (nm *NERModel) Predict(input []string) []Entity {
+//	tokens := nm.tokenClassificationModel.Predict(input, true, false)
+//
+//	var entities []Entity
+//	for _, tok := range tokens {
+//		if tok.Label != "0" {
+//			entities = append(entities, Entity{
+//				Word:  tok.Text,
+//				Score: tok.Score,
+//				Label: tok.Label,
+//			})
+//		}
+//	}
+//
+//	return entities
+//}

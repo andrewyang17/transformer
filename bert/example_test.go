@@ -8,7 +8,7 @@ import (
 	ts "github.com/sugarme/gotch/tensor"
 	"github.com/sugarme/tokenizer"
 
-	"github.com/sugarme/transformer/bert"
+	"github.com/andrewyang17/transformer/bert"
 )
 
 func ExampleBertForMaskedLM() {
