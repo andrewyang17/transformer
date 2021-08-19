@@ -110,12 +110,12 @@ func TestRobertaForMaskedLM(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
-	var output ts.Tensor
+	var output *ts.Tensor
 	ts.NoGrad(func() {
 		output, _, _, err = model.Forward(inputTensor, ts.None, ts.None, ts.None, ts.None, ts.None, ts.None, false)
 		if err != nil {
@@ -123,8 +123,8 @@ func TestRobertaForMaskedLM(t *testing.T) {
 		}
 	})
 
-	index1 := output.MustGet(0).MustGet(4).MustArgmax(0, false, false).Int64Values()[0]
-	index2 := output.MustGet(1).MustGet(5).MustArgmax(0, false, false).Int64Values()[0]
+	index1 := output.MustGet(0).MustGet(4).MustArgmax([]int64{0}, false, false).Int64Values()[0]
+	index2 := output.MustGet(1).MustGet(5).MustArgmax([]int64{0}, false, false).Int64Values()[0]
 	gotMask1 := tk.Decode([]int{int(index1)}, false)
 	gotMask2 := tk.Decode([]int{int(index2)}, false)
 
@@ -200,14 +200,14 @@ func TestRobertaForSequenceClassification(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
 	var (
-		output                   ts.Tensor
-		hiddenStates, attentions []ts.Tensor
+		output                   *ts.Tensor
+		hiddenStates, attentions []*ts.Tensor
 	)
 
 	ts.NoGrad(func() {
@@ -289,14 +289,14 @@ func TestRobertaForMultipleChoice(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true).MustUnsqueeze(0, true)
 
 	var (
-		output                   ts.Tensor
-		hiddenStates, attentions []ts.Tensor
+		output                   *ts.Tensor
+		hiddenStates, attentions []*ts.Tensor
 	)
 	ts.NoGrad(func() {
 		output, hiddenStates, attentions, err = model.ForwardT(inputTensor, ts.None, ts.None, ts.None, false)
@@ -385,14 +385,14 @@ func TestRobertaForTokenClassification(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
 	var (
-		output                   ts.Tensor
-		hiddenStates, attentions []ts.Tensor
+		output                   *ts.Tensor
+		hiddenStates, attentions []*ts.Tensor
 	)
 
 	ts.NoGrad(func() {
@@ -481,14 +481,14 @@ func TestRobertaForQuestionAnswering(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
 	var (
-		startScores, endScores   ts.Tensor
-		hiddenStates, attentions []ts.Tensor
+		startScores, endScores   *ts.Tensor
+		hiddenStates, attentions []*ts.Tensor
 	)
 
 	ts.NoGrad(func() {

@@ -18,11 +18,11 @@ type RobertaLMHead struct {
 	dense     *nn.Linear
 	decoder   *util.LinearNoBias
 	layerNorm *nn.LayerNorm
-	bias      ts.Tensor
+	bias      *ts.Tensor
 }
 
 // NewRobertaLMHead creates new RobertaLMHead.
-func NewRobertaLMHead(p nn.Path, config *bert.BertConfig) *RobertaLMHead {
+func NewRobertaLMHead(p *nn.Path, config *bert.BertConfig) *RobertaLMHead {
 	dense := nn.NewLinear(p.Sub("dense"), config.HiddenSize, config.HiddenSize, nn.DefaultLinearConfig())
 
 	layerNormConfig := nn.DefaultLayerNormConfig()
@@ -34,15 +34,15 @@ func NewRobertaLMHead(p nn.Path, config *bert.BertConfig) *RobertaLMHead {
 	bias := p.NewVar("bias", []int64{config.VocabSize}, nn.NewKaimingUniformInit())
 
 	return &RobertaLMHead{
-		dense:     &dense,
+		dense:     dense,
 		decoder:   decoder,
-		layerNorm: &layerNorm,
+		layerNorm: layerNorm,
 		bias:      bias,
 	}
 }
 
 // Foward forwards pass through RobertaLMHead model.
-func (rh *RobertaLMHead) Forward(hiddenStates ts.Tensor) ts.Tensor {
+func (rh *RobertaLMHead) Forward(hiddenStates *ts.Tensor) *ts.Tensor {
 	gelu := util.NewGelu()
 	appliedDense := hiddenStates.Apply(rh.dense)
 	geluFwd := gelu.Fwd(appliedDense)
@@ -67,7 +67,7 @@ type RobertaForMaskedLM struct {
 }
 
 // NewRobertaForMaskedLM builds a new RobertaForMaskedLM.
-func NewRobertaForMaskedLM(p nn.Path, config *bert.BertConfig) *RobertaForMaskedLM {
+func NewRobertaForMaskedLM(p *nn.Path, config *bert.BertConfig) *RobertaForMaskedLM {
 	roberta := bert.NewBertModel(p.Sub("roberta"), config)
 	lmHead := NewRobertaLMHead(p.Sub("lm_head"), config)
 
@@ -140,7 +140,7 @@ func (mlm *RobertaForMaskedLM) Load(modelNameOrPath string, config interface{ pr
 // 	+ `attentions`:  optional slice of tensors of length num hidden layers with shape
 // 		(batch size, sequence length, hidden size).
 // 	+ `err`: error
-func (mlm *RobertaForMaskedLM) Forward(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds, encoderHiddenStates, encoderMask ts.Tensor, train bool) (output ts.Tensor, hiddenStates, attentions []ts.Tensor, err error) {
+func (mlm *RobertaForMaskedLM) Forward(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds, encoderHiddenStates, encoderMask *ts.Tensor, train bool) (output *ts.Tensor, hiddenStates, attentions []*ts.Tensor, err error) {
 
 	hiddenState, _, allHiddenStates, allAttentions, err := mlm.roberta.ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds, encoderHiddenStates, encoderMask, train)
 
@@ -161,21 +161,21 @@ type RobertaClassificationHead struct {
 }
 
 // NewRobertaClassificationHead create a new RobertaClassificationHead.
-func NewRobertaClassificationHead(p nn.Path, config *bert.BertConfig) *RobertaClassificationHead {
+func NewRobertaClassificationHead(p *nn.Path, config *bert.BertConfig) *RobertaClassificationHead {
 	dense := nn.NewLinear(p.Sub("dense"), config.HiddenSize, config.HiddenSize, nn.DefaultLinearConfig())
 	numLabels := int64(len(config.Id2Label))
 	outProj := nn.NewLinear(p.Sub("out_proj"), config.HiddenSize, numLabels, nn.DefaultLinearConfig())
 	dropout := util.NewDropout(config.HiddenDropoutProb)
 
 	return &RobertaClassificationHead{
-		dense:   &dense,
+		dense:   dense,
 		dropout: dropout,
-		outProj: &outProj,
+		outProj: outProj,
 	}
 }
 
 // ForwardT forwards pass through model.
-func (ch *RobertaClassificationHead) ForwardT(hiddenStates ts.Tensor, train bool) ts.Tensor {
+func (ch *RobertaClassificationHead) ForwardT(hiddenStates *ts.Tensor, train bool) *ts.Tensor {
 	appliedDO1 := hiddenStates.MustSelect(1, 0, false).ApplyT(ch.dropout, train)
 	appliedDense := appliedDO1.Apply(ch.dense)
 	tanhTs := appliedDense.MustTanh(false)
@@ -198,7 +198,7 @@ type RobertaForSequenceClassification struct {
 }
 
 // NewRobertaForSequenceClassification creates a new RobertaForSequenceClassification model.
-func NewRobertaForSequenceClassification(p nn.Path, config *bert.BertConfig) *RobertaForSequenceClassification {
+func NewRobertaForSequenceClassification(p *nn.Path, config *bert.BertConfig) *RobertaForSequenceClassification {
 	roberta := bert.NewBertModel(p.Sub("roberta"), config)
 	classifier := NewRobertaClassificationHead(p.Sub("classifier"), config)
 
@@ -241,7 +241,7 @@ func (sc *RobertaForSequenceClassification) Load(modelNameOrPath string, config 
 }
 
 // Forward forwards pass through the model.
-func (sc *RobertaForSequenceClassification) ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds ts.Tensor, train bool) (labels ts.Tensor, hiddenStates, attentions []ts.Tensor, err error) {
+func (sc *RobertaForSequenceClassification) ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds *ts.Tensor, train bool) (labels *ts.Tensor, hiddenStates, attentions []*ts.Tensor, err error) {
 
 	hiddenState, _, hiddenStates, attentions, err := sc.roberta.ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds, ts.None, ts.None, train)
 	if err != nil {
@@ -266,7 +266,7 @@ type RobertaForMultipleChoice struct {
 }
 
 // NewRobertaForMultipleChoice creates a new RobertaForMultipleChoice model.
-func NewRobertaForMultipleChoice(p nn.Path, config *bert.BertConfig) *RobertaForMultipleChoice {
+func NewRobertaForMultipleChoice(p *nn.Path, config *bert.BertConfig) *RobertaForMultipleChoice {
 	roberta := bert.NewBertModel(p.Sub("roberta"), config)
 	dropout := util.NewDropout(config.HiddenDropoutProb)
 	classifier := nn.NewLinear(p.Sub("classifier"), config.HiddenSize, 1, nn.DefaultLinearConfig())
@@ -274,7 +274,7 @@ func NewRobertaForMultipleChoice(p nn.Path, config *bert.BertConfig) *RobertaFor
 	return &RobertaForMultipleChoice{
 		roberta:    roberta,
 		dropout:    dropout,
-		classifier: &classifier,
+		classifier: classifier,
 	}
 }
 
@@ -302,7 +302,7 @@ func (mc *RobertaForMultipleChoice) Load(modelNameOrPath string, config interfac
 	mc.roberta = bert.NewBertModel(p.Sub("roberta"), config.(*bert.BertConfig))
 	mc.dropout = util.NewDropout(config.(*bert.BertConfig).HiddenDropoutProb)
 	classifier := nn.NewLinear(p.Sub("classifier"), config.(*bert.BertConfig).HiddenSize, 1, nn.DefaultLinearConfig())
-	mc.classifier = &classifier
+	mc.classifier = classifier
 
 	err = vs.Load(cachedFile)
 	if err != nil {
@@ -313,7 +313,7 @@ func (mc *RobertaForMultipleChoice) Load(modelNameOrPath string, config interfac
 }
 
 // ForwardT forwards pass through the model.
-func (mc *RobertaForMultipleChoice) ForwardT(inputIds, mask, tokenTypeIds, positionIds ts.Tensor, train bool) (output ts.Tensor, hiddenStates, attentions []ts.Tensor, err error) {
+func (mc *RobertaForMultipleChoice) ForwardT(inputIds, mask, tokenTypeIds, positionIds *ts.Tensor, train bool) (output *ts.Tensor, hiddenStates, attentions []*ts.Tensor, err error) {
 
 	numChoices := inputIds.MustSize()[1]
 
@@ -338,7 +338,7 @@ func (mc *RobertaForMultipleChoice) ForwardT(inputIds, mask, tokenTypeIds, posit
 		flatMask = mask.MustView([]int64{-1, flatMaskSize[len(flatMaskSize)-1]}, false)
 	}
 
-	var pooledOutput ts.Tensor
+	var pooledOutput *ts.Tensor
 	_, pooledOutput, hiddenStates, attentions, err = mc.roberta.ForwardT(flatInputIds, flatMask, flatTokenTypeIds, flatPositionIds, ts.None, ts.None, ts.None, train)
 	if err != nil {
 		return ts.None, nil, nil, err
@@ -361,7 +361,7 @@ type RobertaForTokenClassification struct {
 }
 
 // NewRobertaForTokenClassification creates a new RobertaForTokenClassification model.
-func NewRobertaForTokenClassification(p nn.Path, config *bert.BertConfig) *RobertaForTokenClassification {
+func NewRobertaForTokenClassification(p *nn.Path, config *bert.BertConfig) *RobertaForTokenClassification {
 	roberta := bert.NewBertModel(p.Sub("roberta"), config)
 	dropout := util.NewDropout(config.HiddenDropoutProb)
 	numLabels := int64(len(config.Id2Label))
@@ -370,7 +370,7 @@ func NewRobertaForTokenClassification(p nn.Path, config *bert.BertConfig) *Rober
 	return &RobertaForTokenClassification{
 		roberta:    roberta,
 		dropout:    dropout,
-		classifier: &classifier,
+		classifier: classifier,
 	}
 }
 
@@ -402,7 +402,7 @@ func (tc *RobertaForTokenClassification) Load(modelNameOrPath string, config int
 
 	tc.roberta = roberta
 	tc.dropout = dropout
-	tc.classifier = &classifier
+	tc.classifier = classifier
 
 	err = vs.Load(cachedFile)
 	if err != nil {
@@ -413,7 +413,7 @@ func (tc *RobertaForTokenClassification) Load(modelNameOrPath string, config int
 }
 
 // ForwardT forwards pass through the model.
-func (tc *RobertaForTokenClassification) ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds ts.Tensor, train bool) (output ts.Tensor, hiddenStates, attentions []ts.Tensor, err error) {
+func (tc *RobertaForTokenClassification) ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds *ts.Tensor, train bool) (output *ts.Tensor, hiddenStates, attentions []*ts.Tensor, err error) {
 	hiddenState, _, hiddenStates, attentions, err := tc.roberta.ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds, ts.None, ts.None, train)
 	if err != nil {
 		return ts.None, nil, nil, err
@@ -434,14 +434,14 @@ type RobertaForQuestionAnswering struct {
 }
 
 // NewRobertaQuestionAnswering creates a new RobertaForQuestionAnswering model.
-func NewRobertaForQuestionAnswering(p nn.Path, config *bert.BertConfig) *RobertaForQuestionAnswering {
+func NewRobertaForQuestionAnswering(p *nn.Path, config *bert.BertConfig) *RobertaForQuestionAnswering {
 	roberta := bert.NewBertModel(p.Sub("roberta"), config)
 	numLabels := int64(2)
 	qaOutputs := nn.NewLinear(p.Sub("qa_outputs"), config.HiddenSize, numLabels, nn.DefaultLinearConfig())
 
 	return &RobertaForQuestionAnswering{
 		roberta:   roberta,
-		qaOutputs: &qaOutputs,
+		qaOutputs: qaOutputs,
 	}
 }
 
@@ -471,7 +471,7 @@ func (qa *RobertaForQuestionAnswering) Load(modelNameOrPath string, config inter
 	qaOutputs := nn.NewLinear(p.Sub("qa_outputs"), config.(*bert.BertConfig).HiddenSize, numLabels, nn.DefaultLinearConfig())
 
 	qa.roberta = roberta
-	qa.qaOutputs = &qaOutputs
+	qa.qaOutputs = qaOutputs
 
 	err = vs.Load(cachedFile)
 	if err != nil {
@@ -482,7 +482,7 @@ func (qa *RobertaForQuestionAnswering) Load(modelNameOrPath string, config inter
 }
 
 // ForwadT forwards pass through the model.
-func (qa *RobertaForQuestionAnswering) ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds ts.Tensor, train bool) (startScores, endScores ts.Tensor, hiddenStates, attentions []ts.Tensor, err error) {
+func (qa *RobertaForQuestionAnswering) ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds *ts.Tensor, train bool) (startScores, endScores *ts.Tensor, hiddenStates, attentions []*ts.Tensor, err error) {
 	hiddenState, _, hiddenStates, attentions, err := qa.roberta.ForwardT(inputIds, mask, tokenTypeIds, positionIds, inputEmbeds, ts.None, ts.None, train)
 	if err != nil {
 		return ts.None, ts.None, nil, nil, err

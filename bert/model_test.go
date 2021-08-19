@@ -100,18 +100,18 @@ func TestBertForMaskedLM(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
-	var output ts.Tensor
+	var output *ts.Tensor
 	ts.NoGrad(func() {
 		output, _, _ = model.ForwardT(inputTensor, ts.None, ts.None, ts.None, ts.None, ts.None, ts.None, false)
 	})
 
-	index1 := output.MustGet(0).MustGet(4).MustArgmax(0, false, false).Int64Values()[0]
-	index2 := output.MustGet(1).MustGet(7).MustArgmax(0, false, false).Int64Values()[0]
+	index1 := output.MustGet(0).MustGet(4).MustArgmax([]int64{0}, false, false).Int64Values()[0]
+	index2 := output.MustGet(1).MustGet(7).MustArgmax([]int64{0}, false, false).Int64Values()[0]
 
 	got1, ok := tk.IdToToken(int(index1))
 	if !ok {
@@ -182,14 +182,14 @@ func TestBertForSequenceClassification(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
 	var (
-		output                         ts.Tensor
-		allHiddenStates, allAttentions []ts.Tensor
+		output                         *ts.Tensor
+		allHiddenStates, allAttentions []*ts.Tensor
 	)
 
 	ts.NoGrad(func() {
@@ -257,14 +257,14 @@ func TestBertForMultipleChoice(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true).MustUnsqueeze(0, true)
 
 	var (
-		output                         ts.Tensor
-		allHiddenStates, allAttentions []ts.Tensor
+		output                         *ts.Tensor
+		allHiddenStates, allAttentions []*ts.Tensor
 	)
 
 	ts.NoGrad(func() {
@@ -339,14 +339,14 @@ func TestBertForTokenClassification(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
 	var (
-		output                         ts.Tensor
-		allHiddenStates, allAttentions []ts.Tensor
+		output                         *ts.Tensor
+		allHiddenStates, allAttentions []*ts.Tensor
 	)
 
 	ts.NoGrad(func() {
@@ -414,14 +414,14 @@ func TestBertForQuestionAnswering(t *testing.T) {
 			tokInput[i] = int64(en.Ids[i])
 		}
 
-		tensors = append(tensors, ts.TensorFrom(tokInput))
+		tensors = append(tensors, *ts.TensorFrom(tokInput))
 	}
 
 	inputTensor := ts.MustStack(tensors, 0).MustTo(device, true)
 
 	var (
-		startScores, endScores         ts.Tensor
-		allHiddenStates, allAttentions []ts.Tensor
+		startScores, endScores         *ts.Tensor
+		allHiddenStates, allAttentions []*ts.Tensor
 	)
 
 	ts.NoGrad(func() {

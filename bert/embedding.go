@@ -24,7 +24,7 @@ type BertEmbeddings struct {
 }
 
 // NewBertEmbeddings builds a new BertEmbeddings
-func NewBertEmbeddings(p nn.Path, config *BertConfig) *BertEmbeddings {
+func NewBertEmbeddings(p *nn.Path, config *BertConfig) *BertEmbeddings {
 	embeddingConfig := nn.DefaultEmbeddingConfig()
 	embeddingConfig.PaddingIdx = 0
 
@@ -45,14 +45,14 @@ func NewBertEmbeddings(p nn.Path, config *BertConfig) *BertEmbeddings {
 
 	dropout := util.NewDropout(config.HiddenDropoutProb)
 
-	return &BertEmbeddings{&wordEmbeddings, &positionEmbeddings, &tokenTypeEmbeddings, &layerNorm, dropout}
+	return &BertEmbeddings{wordEmbeddings, positionEmbeddings, tokenTypeEmbeddings, layerNorm, dropout}
 }
 
 // ForwardT implements BertEmbedding interface, passes throught the embedding layer
-func (be *BertEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, inputEmbeds ts.Tensor, train bool) (retVal ts.Tensor, err error) {
+func (be *BertEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, inputEmbeds *ts.Tensor, train bool) (retVal *ts.Tensor, err error) {
 
 	var (
-		inputEmbeddings ts.Tensor
+		inputEmbeddings *ts.Tensor
 		inputShape      []int64
 	)
 
@@ -77,7 +77,7 @@ func (be *BertEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, inputEmb
 
 	seqLength := inputEmbeddings.MustSize()[1]
 
-	var posIds ts.Tensor
+	var posIds *ts.Tensor
 	if positionIds.MustDefined() {
 		posIds = positionIds
 	} else {
@@ -86,7 +86,7 @@ func (be *BertEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, inputEmb
 		posIds = tmp2.MustExpand(inputShape, true, true)
 	}
 
-	var tokTypeIds ts.Tensor
+	var tokTypeIds *ts.Tensor
 	if tokenTypeIds.MustDefined() {
 		tokTypeIds = tokenTypeIds
 	} else {

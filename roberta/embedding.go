@@ -22,7 +22,7 @@ type RobertaEmbeddings struct {
 	paddingIndex        int64
 }
 
-func (re *RobertaEmbeddings) createPositionIdsFromInputIds(x ts.Tensor) ts.Tensor {
+func (re *RobertaEmbeddings) createPositionIdsFromInputIds(x *ts.Tensor) *ts.Tensor {
 	mask := x.MustNe(ts.IntScalar(re.paddingIndex), false).MustTotype(gotch.Int64, true)
 	cumSum := mask.MustCumsum(1, gotch.Int64, false)
 	mul := cumSum.MustMul(mask, true)
@@ -32,7 +32,7 @@ func (re *RobertaEmbeddings) createPositionIdsFromInputIds(x ts.Tensor) ts.Tenso
 	return retVal
 }
 
-func (re *RobertaEmbeddings) createPositionIdsFromEmbeddings(x ts.Tensor) ts.Tensor {
+func (re *RobertaEmbeddings) createPositionIdsFromEmbeddings(x *ts.Tensor) *ts.Tensor {
 	shape := x.MustSize()
 	var inputShape []int64 = []int64{shape[0], shape[1]}
 
@@ -62,10 +62,10 @@ func NewRobertaEmbeddings(p nn.Path, config *bert.BertConfig) *RobertaEmbeddings
 	dropout := util.NewDropout(config.HiddenDropoutProb)
 
 	return &RobertaEmbeddings{
-		wordEmbeddings:      &wordEmbeddings,
-		positionEmbeddings:  &positionEmbeddings,
-		tokenTypeEmbeddings: &tokenTypeEmbeddings,
-		layerNorm:           &layerNorm,
+		wordEmbeddings:      wordEmbeddings,
+		positionEmbeddings:  positionEmbeddings,
+		tokenTypeEmbeddings: tokenTypeEmbeddings,
+		layerNorm:           layerNorm,
 		dropout:             dropout,
 	}
 }
@@ -87,10 +87,10 @@ func NewRobertaEmbeddings(p nn.Path, config *bert.BertConfig) *RobertaEmbeddings
 //
 // Return:
 // 	- `embeddedOutput`: tensor of shape (batch size, sequence length, hidden size)
-func (re *RobertaEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, inputEmbeds ts.Tensor, train bool) (ts.Tensor, error) {
+func (re *RobertaEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, inputEmbeds *ts.Tensor, train bool) (*ts.Tensor, error) {
 
 	var (
-		inputEmbeddings ts.Tensor
+		inputEmbeddings *ts.Tensor
 		inputShape      []int64
 	)
 
@@ -114,7 +114,7 @@ func (re *RobertaEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, input
 		}
 	}
 
-	var posIds ts.Tensor
+	var posIds *ts.Tensor
 	if positionIds.MustDefined() {
 		posIds = positionIds
 	} else {
@@ -125,7 +125,7 @@ func (re *RobertaEmbeddings) ForwardT(inputIds, tokenTypeIds, positionIds, input
 		}
 	}
 
-	var tokTypeIds ts.Tensor
+	var tokTypeIds *ts.Tensor
 	if tokenTypeIds.MustDefined() {
 		tokTypeIds = tokenTypeIds
 	} else {

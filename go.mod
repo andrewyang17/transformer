@@ -3,7 +3,7 @@ module github.com/andrewyang17/transformer
 go 1.17
 
 require (
-	github.com/sugarme/gotch v0.1.5
+	github.com/sugarme/gotch v0.3.2
 	github.com/sugarme/tokenizer v0.1.15
 )
 
